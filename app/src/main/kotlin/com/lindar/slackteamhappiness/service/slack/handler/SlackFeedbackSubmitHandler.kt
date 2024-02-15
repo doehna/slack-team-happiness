@@ -1,6 +1,6 @@
 package com.lindar.slackteamhappiness.service.slack.handler
 
-import com.lindar.slackteamhappiness.service.notion.NotionTeamHappinessService
+import com.lindar.slackteamhappiness.service.googlesheets.TeamHappinessGoogleSheetService
 import com.lindar.slackteamhappiness.service.slack.view.SlackViewIDs
 import com.slack.api.bolt.App
 import com.slack.api.bolt.request.builtin.BlockActionRequest
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class SlackFeedbackSubmitHandler (
-    private val notionTeamHappinessService: NotionTeamHappinessService
+    private val teamHappinessGoogleSheetService: TeamHappinessGoogleSheetService
 ) {
 
     fun handleSubmit(app: App) {
@@ -21,7 +21,7 @@ class SlackFeedbackSubmitHandler (
 
             val currentUserInfo = getUserInfo(app, ctx.botToken, currentUserId)
 
-            notionTeamHappinessService.storeFeedback(currentUserInfo.user.profile.email, selectedFeedback)
+            teamHappinessGoogleSheetService.appendValues(selectedFeedback, currentUserInfo.user.profile.realNameNormalized)
 
             val responseMessage = "Thank you for your response! $selectedFeedback"
 
