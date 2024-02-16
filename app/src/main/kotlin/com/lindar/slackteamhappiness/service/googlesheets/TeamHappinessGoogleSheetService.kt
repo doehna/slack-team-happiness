@@ -10,6 +10,7 @@ import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.auth.oauth2.ServiceAccountCredentials
 import org.springframework.stereotype.Service
+import java.io.FileInputStream
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -18,10 +19,10 @@ import java.util.*
 @Service
 object TeamHappinessGoogleSheetService {
     private val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance()
-    private const val CREDENTIALS_FILE_PATH = "/credentials.json" // Adjust the path as necessary
+    private const val CREDENTIALS_FILE_PATH = "/conf/credentials.json" // Adjust the path as necessary
     private const val APPLICATION_NAME = "Google Sheets Example"
     private const val SPREADSHEET_ID = "1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4"
-    private const val SHEET_NAME = "Sheet1!A1"
+    private const val SHEET_NAME = "Form responses"
 
     fun appendValues(selectedFeedback: String, respondentName: String) {
         try {
@@ -58,9 +59,10 @@ object TeamHappinessGoogleSheetService {
 
     @Throws(Exception::class)
     private fun getCredentials(): GoogleCredentials? {
-        val credentialsStream = TeamHappinessGoogleSheetService::class.java.getResourceAsStream(CREDENTIALS_FILE_PATH)
-        return ServiceAccountCredentials.fromStream(credentialsStream)
-            .createScoped(listOf(SheetsScopes.SPREADSHEETS))
+        FileInputStream(System.getProperty("user.home") + CREDENTIALS_FILE_PATH).use { inputStream ->
+            return ServiceAccountCredentials.fromStream(inputStream)
+                .createScoped(listOf(SheetsScopes.SPREADSHEETS))
+        }
     }
 
     fun getNowTimeString(): String {
