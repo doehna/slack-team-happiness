@@ -20,12 +20,9 @@ class ScheduledMessagingTask(private val slackMessagingService: SlackMessagingSe
 
         println("Users in group: ${userGroupResponse.users}")
 
-//        userGroupResponse.users.forEach { userId ->
-//            slackMessagingService.sendMessageToUser(userId, "Please share your weekly feedback!")
-//        }
-
-        val iulianUserId = "U0AKL97R6"
-        slackMessagingService.sendMessageToUser(iulianUserId, "Please share your weekly feedback!")
+        userGroupResponse.users.forEach { userId ->
+            slackMessagingService.sendMessageToUser(userId, "Please share your weekly feedback!")
+        }
     }
 
     private fun getGroupUsers(groupId: String): UsergroupsUsersListResponse {
