@@ -13,7 +13,7 @@ class ScheduledMessagingTask(private val slackMessagingService: SlackMessagingSe
                              private val methodsClient: MethodsClient,
                              @Value("\${slack.teams.eng-team}") private val SLACK_TEAM_GROUP_ID: String) {
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 45 14 * * FRI", zone = "CET")
     fun sendWeeklyHappinessSurvey() {
         println("Sending weekly happiness survey to team members...")
         val userGroupResponse = getGroupUsers(SLACK_TEAM_GROUP_ID)
