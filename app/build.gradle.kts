@@ -35,8 +35,6 @@ dependencies {
     implementation("com.lindar:well-rested-client:2.3.4")
     implementation("org.json:json:20231013")
 
-    implementation("com.github.seratch:notion-sdk-jvm-core:1.10.0")
-
     implementation("com.github.ben-manes.caffeine:caffeine:2.9.3")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

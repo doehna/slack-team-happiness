@@ -20,7 +20,6 @@ Team happiness Slack Bot which populates the related Engineering Scorecard metri
 -DSLACK_APP_TOKEN=
 -DSLACK_BOT_TOKEN=
 -DSLACK_SIGNING_SECRET=
--DSLACK_TEAM_CHANNEL=
 -DSLACK_TEAM_GROUP_ID=
 ```
 
