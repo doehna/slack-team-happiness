@@ -17,14 +17,21 @@ Team happiness Slack Bot which populates the related Engineering Scorecard metri
 - Run `SlackTeamHappinessApplication` using your IDE with the variables (populate with relevant test values):
 
 ```
--DSLACK_APP_TOKEN=
--DSLACK_BOT_TOKEN=
--DSLACK_SIGNING_SECRET=
--DSLACK_TEAM_GROUP_ID=
+-DSLACK_APP_TOKEN= // test bot details
+-DSLACK_BOT_TOKEN= // test bot details
+-DSLACK_SIGNING_SECRET= // test bot details
+-DSLACK_TEST_USER_ID= // your or another test user id
+-DCRON_JOB_VALUE=0 * * * * * // to trigger the message more often
 ```
 
-Additionally you also need [Google Service Account Credentials](https://developers.google.com/workspace/guides/create-credentials#service-account) to be able to access Google Sheets, which need to reside in `<user.home>/conf/credentials.json`.
+Get your Slack user ID:
+1. Click on your profile picture
+2. Click "View full profile"
+3. Click on "more" and click "Copy member ID"
+
+Additionally, you also need [Google Service Account Credentials](https://developers.google.com/workspace/guides/create-credentials#service-account) to be able to access Google Sheets, which need to reside in `<user.home>/conf/credentials.json`.
 
 ### Deploying to production
-- Run `./gradlew bootJar` and deploy to Enscale using the Deployment Manager 
+- Run `./gradlew bootJar` and deploy to Enscale using the Deployment Manager.
+- Remember to use the variable `SLACK_TEAM_GROUP_ID` instead of `SLACK_TEST_USER_ID` when you are ready to send this message to more than one person.
 

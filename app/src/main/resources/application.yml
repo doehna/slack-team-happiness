@@ -13,4 +13,7 @@ slack:
     app:
         token: ${SLACK_APP_TOKEN}
     teams:
-        eng-team: ${SLACK_TEAM_GROUP_ID}
+        test-user: ${SLACK_TEST_USER_ID:}
+        eng-team: ${SLACK_TEAM_GROUP_ID:}
+schedule:
+  cron: ${CRON_JOB_VALUE}

@@ -11,17 +11,26 @@ import org.springframework.stereotype.Service
 @Service
 class ScheduledMessagingTask(private val slackMessagingService: SlackMessagingService,
                              private val methodsClient: MethodsClient,
-                             @Value("\${slack.teams.eng-team}") private val SLACK_TEAM_GROUP_ID: String) {
+                             @Value("\${slack.teams.eng-team}") private val SLACK_TEAM_GROUP_ID: String?,
+                             @Value("\${slack.teams.test-user}") private val SLACK_TEST_USER_ID: String?) {
 
-    @Scheduled(cron = "0 45 14 * * FRI", zone = "CET")
+    @Scheduled(cron = "#{'\${schedule.cron}'}")
+//    @Scheduled(cron = "0 45 14 * * FRI", zone = "CET")
     fun sendWeeklyHappinessSurvey() {
-        println("Sending weekly happiness survey to team members...")
-        val userGroupResponse = getGroupUsers(SLACK_TEAM_GROUP_ID)
+        if (!SLACK_TEST_USER_ID.isNullOrEmpty()) {
+            println("TESTING MODE: Sending to a single user ${SLACK_TEST_USER_ID}...")
+            slackMessagingService.sendMessageToUser(SLACK_TEST_USER_ID, "Please share your weekly feedback!")
+        } else if (!SLACK_TEAM_GROUP_ID.isNullOrEmpty()) {
+            println("Sending weekly happiness survey to team members...")
+            val userGroupResponse = getGroupUsers(SLACK_TEAM_GROUP_ID)
 
-        println("Users in group: ${userGroupResponse.users}")
+            println("Users in group: ${userGroupResponse.users}")
 
-        userGroupResponse.users.forEach { userId ->
-            slackMessagingService.sendMessageToUser(userId, "Please share your weekly feedback!")
+            userGroupResponse.users.forEach { userId ->
+                slackMessagingService.sendMessageToUser(userId, "Please share your weekly feedback!")
+            }
+        } else {
+            throw IllegalStateException("Both test user and group are empty.")
         }
     }
 
