@@ -1,9 +1,29 @@
 # slack-team-happiness
+Team happiness Slack Bot which populates the related Engineering Scorecard metric.
 
-Features:
+## Features
 * Weekly Happiness Check-In: Automatically prompts members of the group `SLACK_TEAM_CHANNEL` every Friday to rate their happiness on a scale.
 
 <img width="470" alt="Screenshot 2024-02-21 at 15 04 22" src="https://github.com/lindar-joy/slack-team-happiness/assets/18517177/2d64d3a8-8e91-46e7-af75-0a7a56f3c217">
 
 * Pushed to Sheets: The results are automatically pushed to the Google Sheet specified in `TeamHappinessGoogleSheetService#SPREADSHEET_ID`.
+
+## Contributing
+### Building the project 
+- Java 17 is required (i.e. `sdk use java 17.0.2-open`)
+- Run `./gradlew build`
+
+### Running locally
+- Run `SlackTeamHappinessApplication` using your IDE with the variables (populate with relevant test values):
+
+```
+-DSLACK_APP_TOKEN=
+-DSLACK_BOT_TOKEN=
+-DSLACK_SIGNING_SECRET=
+-DSLACK_TEAM_CHANNEL=
+-DSLACK_TEAM_GROUP_ID=
+```
+
+### Deploying to production
+- Run `./gradlew bootJar` and deploy to Enscale using the Deployment Manager 
 
