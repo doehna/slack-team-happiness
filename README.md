@@ -24,6 +24,8 @@ Team happiness Slack Bot which populates the related Engineering Scorecard metri
 -DSLACK_TEAM_GROUP_ID=
 ```
 
+Additionally you also need [Google Service Account Credentials](https://developers.google.com/workspace/guides/create-credentials#service-account) to be able to access Google Sheets, which need to reside in `<user.home>/conf/credentials.json`.
+
 ### Deploying to production
 - Run `./gradlew bootJar` and deploy to Enscale using the Deployment Manager 
 
