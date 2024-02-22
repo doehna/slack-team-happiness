@@ -17,4 +17,4 @@ slack:
     eng-team: ${SLACK_TEAM_GROUP_ID:}
 
 schedule:
-  cron: ${CRON_JOB_VALUE}
+  cron: 0 30 14 * * FRI

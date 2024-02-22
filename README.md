@@ -21,7 +21,6 @@ Team happiness Slack Bot which populates the related Engineering Scorecard metri
 -DSLACK_BOT_TOKEN= // test bot details
 -DSLACK_SIGNING_SECRET= // test bot details
 -DSLACK_TEST_USER_ID= // your or another test user id
--DCRON_JOB_VALUE=0 * * * * * // to trigger the message more often
 ```
 
 Get your Slack user ID:
