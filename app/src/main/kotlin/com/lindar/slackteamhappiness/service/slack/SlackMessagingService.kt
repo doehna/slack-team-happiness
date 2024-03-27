@@ -29,9 +29,11 @@ class SlackMessagingService(private val methodsClient: MethodsClient) {
                                             it.placeholder(plainText("Select an option"))
                                                 .actionId(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID)
                                                 .options(listOf(
-                                                    option(plainText(":smile: Happy"), "happy"),
-                                                    option(plainText(":neutral_face: Neutral"), "neutral"),
-                                                    option(plainText(":disappointed: Unhappy"), "unhappy")
+                                                    option(plainText(":smile: Great: Above average week, felt very happy and energized."), "Great"),
+                                                    option(plainText(":slightly_smiling_face: Good: Average week, felt satisfied and positive."), "Good"),
+                                                    option(plainText(":neutral_face: Okay: Not happy or unhappy. Just fine."), "Okay"),
+                                                    option(plainText(":confused: Not Great: A little unhappy. Something could be better."), "Not Great"),
+                                                    option(plainText(":disappointed: Unhappy: A lot could be better."), "Unhappy")
                                                 ))
                                         }
                                     )
