@@ -11,9 +11,6 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.auth.oauth2.ServiceAccountCredentials
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Service
@@ -24,12 +21,12 @@ object TeamHappinessGoogleSheetService {
     private const val SPREADSHEET_ID = "1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4"
     private const val SHEET_NAME = "Form responses"
 
-    fun appendValues(selectedFeedback: String, respondentName: String) {
+    fun appendValues(selectedFeedback: String, respondentName: String, messageDate: String) {
         try {
 
             val values = listOf(
                 listOf<Any>(
-                    selectedFeedback, respondentName, getNowTimeString()
+                    selectedFeedback, respondentName, messageDate
                 )
             )
 
@@ -63,11 +60,5 @@ object TeamHappinessGoogleSheetService {
             return ServiceAccountCredentials.fromStream(inputStream)
                 .createScoped(listOf(SheetsScopes.SPREADSHEETS))
         }
-    }
-
-    fun getNowTimeString(): String {
-        val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy h:mma z", Locale.ENGLISH)
-        val zonedDateTime = ZonedDateTime.now(ZoneOffset.UTC).format(formatter)
-        return zonedDateTime.format(DateTimeFormatter.ISO_DATE_TIME)
     }
 }
