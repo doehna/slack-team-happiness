@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 @Service
 class SlackMessagingService(private val methodsClient: MethodsClient) {
 
-    fun sendMessageToUser(userId: String, message: String) {
+    fun sendMessageToUser(userId: String, message: String, team: String = "Engineering") {
         try {
             methodsClient.chatPostMessage { req ->
                 req.channel(userId)
@@ -22,7 +22,7 @@ class SlackMessagingService(private val methodsClient: MethodsClient) {
                         },
                         actions { actions ->
                             actions
-                                .blockId(SlackViewIDs.USER_SELECTION_DROPDOWN_BLOCK_ID)
+                                .blockId("${SlackViewIDs.USER_SELECTION_DROPDOWN_BLOCK_ID}_${team.lowercase()}")
                                 .elements(
                                     listOf(
                                         staticSelect {

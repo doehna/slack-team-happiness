@@ -25,11 +25,13 @@ class SlackFeedbackSubmitHandler (
             val currentUserId = req.payload.user.id
             val currentUserInfo = getUserInfo(app, ctx.botToken, currentUserId)
             val messageDate = getOriginalMessageDateFromBlock(req)
+            val team = getTeamFromBlockId(req)
 
             teamHappinessGoogleSheetService.appendValues(
                 selectedFeedback,
                 currentUserInfo.user.profile.realNameNormalized,
-                messageDate
+                messageDate,
+                team
             )
 
             val responseMessage = "Thank you for your response! $selectedFeedback"
@@ -52,12 +54,26 @@ class SlackFeedbackSubmitHandler (
         }
     }
 
+    private fun getTeamFromBlockId(req: BlockActionRequest): String {
+        val blockId = req.payload.actions.firstOrNull()?.blockId ?: ""
+        return when {
+            blockId.contains("product") -> "Product"
+            blockId.contains("test") -> "Test"
+            else -> "Engineering"
+        }
+    }
+
     private fun getUserInfo(app: App, slackBotToken: String, userId: String): UsersInfoResponse {
         return app.slack.methods(slackBotToken).usersInfo { it.user(userId) }
     }
 
     fun getSelectedFeedbackFromBlock(req: BlockActionRequest): String {
-        return req.payload.state.values[SlackViewIDs.USER_SELECTION_DROPDOWN_BLOCK_ID]?.get(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID)?.selectedOption?.text?.text ?: ""
+        // Find the block ID that contains our action ID
+        val blockId = req.payload.state.values.keys.find { 
+            req.payload.state.values[it]?.containsKey(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) == true 
+        } ?: SlackViewIDs.USER_SELECTION_DROPDOWN_BLOCK_ID
+
+        return req.payload.state.values[blockId]?.get(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID)?.selectedOption?.text?.text ?: ""
     }
 
     fun getOriginalMessageDateFromBlock(req: BlockActionRequest): String {

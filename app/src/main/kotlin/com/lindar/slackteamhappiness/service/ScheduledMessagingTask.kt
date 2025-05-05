@@ -11,25 +11,31 @@ import org.springframework.stereotype.Service
 @Service
 class ScheduledMessagingTask(private val slackMessagingService: SlackMessagingService,
                              private val methodsClient: MethodsClient,
-                             @Value("\${slack.teams.eng-team}") private val SLACK_TEAM_GROUP_ID: String?,
+                             @Value("\${slack.teams.eng-team}") private val SLACK_ENG_TEAM_GROUP_ID: String?,
+                             @Value("\${slack.teams.product-team}") private val SLACK_PRODUCT_TEAM_GROUP_ID: String?,
                              @Value("\${slack.teams.test-user}") private val SLACK_TEST_USER_ID: String?) {
 
     @Scheduled(cron = "#{'\${schedule.cron}'}", zone = "CET")
     fun sendWeeklyHappinessSurvey() {
         if (!SLACK_TEST_USER_ID.isNullOrEmpty()) {
             println("TESTING MODE: Sending to a single user ${SLACK_TEST_USER_ID}...")
-            slackMessagingService.sendMessageToUser(SLACK_TEST_USER_ID, "Please share your weekly feedback!")
-        } else if (!SLACK_TEAM_GROUP_ID.isNullOrEmpty()) {
-            println("Sending weekly happiness survey to team members...")
-            val userGroupResponse = getGroupUsers(SLACK_TEAM_GROUP_ID)
+            slackMessagingService.sendMessageToUser(SLACK_TEST_USER_ID, "Please share your weekly feedback!", "Test")
+        } else {
+            sendToTeam(SLACK_ENG_TEAM_GROUP_ID, "Engineering")
+            sendToTeam(SLACK_PRODUCT_TEAM_GROUP_ID, "Product")
+        }
+    }
 
-            println("Users in group: ${userGroupResponse.users}")
+    private fun sendToTeam(teamGroupId: String?, teamName: String) {
+        if (!teamGroupId.isNullOrEmpty()) {
+            println("Sending weekly happiness survey to $teamName team members...")
+            val userGroupResponse = getGroupUsers(teamGroupId)
+
+            println("Users in $teamName group: ${userGroupResponse.users}")
 
             userGroupResponse.users.forEach { userId ->
-                slackMessagingService.sendMessageToUser(userId, "Please share your weekly feedback!")
+                slackMessagingService.sendMessageToUser(userId, "Please share your weekly $teamName team feedback!", teamName)
             }
-        } else {
-            throw IllegalStateException("Both test user and group are empty.")
         }
     }
 

@@ -15,6 +15,17 @@ slack:
   teams:
     test-user: ${SLACK_TEST_USER_ID:}
     eng-team: ${SLACK_TEAM_GROUP_ID:}
+    product-team: ${SLACK_PRODUCT_TEAM_GROUP_ID:}
+
+google:
+  sheets:
+    application-name: "Team Happiness Tracker"
+    engineering:
+      spreadsheet-id: ${ENGINEERING_SPREADSHEET_ID:1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4}
+      sheet-name: ${ENGINEERING_SHEET_NAME:Form responses}
+    product:
+      spreadsheet-id: ${PRODUCT_SPREADSHEET_ID:1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4}
+      sheet-name: ${PRODUCT_SHEET_NAME:Product Form responses}
 
 schedule:
   cron: 0 30 14 * * FRI
