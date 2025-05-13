@@ -7,7 +7,6 @@ import org.springframework.boot.web.servlet.ServletComponentScan
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-@ServletComponentScan
 class SlackTeamHappinessApplication
 
 fun main(args: Array<String>) {

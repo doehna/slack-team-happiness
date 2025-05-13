@@ -22,7 +22,6 @@ app:
     application-name: ${GOOGLE_APPLICATION_NAME}
     spreadsheet-id: ${GOOGLE_SPREADSHEET_ID}
     sheet-name: ${GOOGLE_SHEET_NAME}
-
-schedule:
-  cron: ${SCHUDULE_TIME:0 30 14 * * FRI}
+  schedule:
+    cron: ${SCHUDULE_TIME:0 30 14 * * FRI}
 
