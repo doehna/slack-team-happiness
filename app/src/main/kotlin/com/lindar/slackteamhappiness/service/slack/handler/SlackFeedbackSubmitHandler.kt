@@ -18,7 +18,6 @@ import java.util.*
 class SlackFeedbackSubmitHandler (
     private val teamHappinessGoogleSheetService: TeamHappinessGoogleSheetService
 ) {
-
     fun handleSubmit(app: App) {
         app.blockAction(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) { req, ctx ->
             val selectedFeedback = getSelectedFeedbackFromBlock(req)
@@ -40,7 +39,7 @@ class SlackFeedbackSubmitHandler (
                     .ts(req.payload.message.ts)  // Use the timestamp of the original message to identify it
                     .blocks(
                         Blocks.asBlocks(
-                            Blocks.section() { section ->
+                            Blocks.section { section ->
                                 section
                                     .text(BlockCompositions.plainText(responseMessage, true))
                             }

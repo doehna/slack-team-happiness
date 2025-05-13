@@ -14,7 +14,7 @@ class ScheduledMessagingTask(private val slackMessagingService: SlackMessagingSe
                              @Value("\${slack.teams.eng-team}") private val SLACK_TEAM_GROUP_ID: String?,
                              @Value("\${slack.teams.test-user}") private val SLACK_TEST_USER_ID: String?) {
 
-    @Scheduled(cron = "#{'\${schedule.cron}'}", zone = "CET")
+    @Scheduled(cron = "\${app.schedule.cron}", zone = "CET")
     fun sendWeeklyHappinessSurvey() {
         if (!SLACK_TEST_USER_ID.isNullOrEmpty()) {
             println("TESTING MODE: Sending to a single user ${SLACK_TEST_USER_ID}...")
