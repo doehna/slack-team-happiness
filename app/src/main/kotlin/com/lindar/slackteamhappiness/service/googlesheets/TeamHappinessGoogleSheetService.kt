@@ -9,21 +9,19 @@ import com.google.api.services.sheets.v4.model.ValueRange
 import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.auth.oauth2.ServiceAccountCredentials
+import com.lindar.slackteamhappiness.config.AppProperties
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
 import java.util.*
 
 @Service
-object TeamHappinessGoogleSheetService {
-    private val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance()
-    private const val CREDENTIALS_FILE_PATH = "/conf/credentials.json" // Adjust the path as necessary
-    private const val APPLICATION_NAME = "Google Sheets Example"
-    private const val SPREADSHEET_ID = "1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4"
-    private const val SHEET_NAME = "Form responses"
+class TeamHappinessGoogleSheetService(
+    private val appProperties: AppProperties
+) {
+    private val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()
 
     fun appendValues(selectedFeedback: String, respondentName: String, messageDate: String) {
         try {
-
             val values = listOf(
                 listOf<Any>(
                     selectedFeedback, respondentName, messageDate
@@ -34,7 +32,7 @@ object TeamHappinessGoogleSheetService {
 
             val body = ValueRange().setValues(values)
             val result = sheetsService.spreadsheets().values()
-                .append(SPREADSHEET_ID, SHEET_NAME, body)
+                .append(appProperties.google.spreadsheetId, appProperties.google.sheetName, body)
                 .setValueInputOption("RAW")
                 .execute()
 
@@ -46,17 +44,17 @@ object TeamHappinessGoogleSheetService {
 
     @Throws(Exception::class)
     private fun getSheetsService(): Sheets {
-        val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
+        val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
         val credentials = getCredentials()
         val requestInitializer = HttpCredentialsAdapter(credentials)
-        return Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, requestInitializer)
-            .setApplicationName(APPLICATION_NAME)
+        return Sheets.Builder(httpTransport, jsonFactory, requestInitializer)
+            .setApplicationName(appProperties.google.applicationName)
             .build()
     }
 
     @Throws(Exception::class)
     private fun getCredentials(): GoogleCredentials? {
-        FileInputStream(System.getProperty("user.home") + CREDENTIALS_FILE_PATH).use { inputStream ->
+        FileInputStream(System.getProperty("user.home") + appProperties.google.credentialsFilePath).use { inputStream ->
             return ServiceAccountCredentials.fromStream(inputStream)
                 .createScoped(listOf(SheetsScopes.SPREADSHEETS))
         }
