@@ -18,10 +18,11 @@ slack:
 
 app:
   google:
-    credentials-file-path: ${CREDENTIALS_FILE_PATH}
-    application-name: ${APPLICATION_NAME}
-    spreadsheet-id: ${SPREADSHEET_ID}
-    sheet-name: ${SHEET_NAME}
+    credentials-file-path: ${GOOGLE_CREDENTIALS_FILE_PATH}
+    application-name: ${GOOGLE_APPLICATION_NAME}
+    spreadsheet-id: ${GOOGLE_SPREADSHEET_ID}
+    sheet-name: ${GOOGLE_SHEET_NAME}
 
 schedule:
   cron: ${SCHUDULE_TIME:0 30 14 * * FRI}
+

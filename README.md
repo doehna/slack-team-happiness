@@ -17,10 +17,15 @@ Team happiness Slack Bot which populates the related Engineering Scorecard metri
 - Run `SlackTeamHappinessApplication` using your IDE with the variables (populate with relevant test values):
 
 ```
--DSLACK_APP_TOKEN= // test bot details
--DSLACK_BOT_TOKEN= // test bot details
--DSLACK_SIGNING_SECRET= // test bot details
--DSLACK_TEST_USER_ID= // your or another test user id
+SLACK_APP_TOKEN // test bot details
+SLACK_BOT_TOKEN // test bot details
+SLACK_SIGNING_SECRET // test bot details
+SLACK_TEST_USER_ID // your or another test user id
+GOOGLE_CREDENTIALS_FILE_PATH 
+GOOGLE_APPLICATION_NAME 
+GOOGLE_SPREADSHEET_ID
+GOOGLE_SHEET_NAME
+SCHUDULE_TIME
 ```
 
 Get your Slack user ID:
