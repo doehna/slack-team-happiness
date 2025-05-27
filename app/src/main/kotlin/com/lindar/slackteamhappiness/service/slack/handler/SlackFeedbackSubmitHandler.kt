@@ -1,9 +1,13 @@
 package com.lindar.slackteamhappiness.service.slack.handler
 
+import com.lindar.slackteamhappiness.config.SlackProperties
+import com.lindar.slackteamhappiness.config.Team
 import com.lindar.slackteamhappiness.service.googlesheets.TeamHappinessGoogleSheetService
 import com.lindar.slackteamhappiness.service.slack.view.SlackViewIDs
 import com.slack.api.bolt.App
+import com.slack.api.bolt.context.builtin.ActionContext
 import com.slack.api.bolt.request.builtin.BlockActionRequest
+import com.slack.api.methods.MethodsClient
 import com.slack.api.methods.response.users.UsersInfoResponse
 import com.slack.api.model.block.Blocks
 import com.slack.api.model.block.composition.BlockCompositions
@@ -16,51 +20,70 @@ import java.util.*
 
 @Service
 class SlackFeedbackSubmitHandler (
-    private val teamHappinessGoogleSheetService: TeamHappinessGoogleSheetService
+    private val teamHappinessGoogleSheetService: TeamHappinessGoogleSheetService,
+    private val slackProperties: SlackProperties,
+    private val methodsClient: MethodsClient
 ) {
-
     fun handleSubmit(app: App) {
         app.blockAction(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) { req, ctx ->
             val selectedFeedback = getSelectedFeedbackFromBlock(req)
             val currentUserId = req.payload.user.id
             val currentUserInfo = getUserInfo(app, ctx.botToken, currentUserId)
             val messageDate = getOriginalMessageDateFromBlock(req)
-            val team = getTeamFromBlockId(req)
+            val teams = getAllUserTeams(currentUserId)
 
-            teamHappinessGoogleSheetService.appendValues(
-                selectedFeedback,
-                currentUserInfo.user.profile.realNameNormalized,
-                messageDate,
-                team
-            )
-
-            val responseMessage = "Thank you for your response! $selectedFeedback"
-
-            ctx.client().chatUpdate {
-                it
-                    .channel(req.payload.channel.id)
-                    .ts(req.payload.message.ts)  // Use the timestamp of the original message to identify it
-                    .blocks(
-                        Blocks.asBlocks(
-                            Blocks.section() { section ->
-                                section
-                                    .text(BlockCompositions.plainText(responseMessage, true))
-                            }
-                        )
-                    )
+            teams.forEach {
+                teamHappinessGoogleSheetService.appendValues(
+                    selectedFeedback,
+                    currentUserInfo.user.profile.realNameNormalized,
+                    messageDate,
+                    it
+                )
             }
+
+            sendResponseMessage(selectedFeedback, ctx, req)
 
             ctx.ack()
         }
     }
 
-    private fun getTeamFromBlockId(req: BlockActionRequest): String {
-        val blockId = req.payload.actions.firstOrNull()?.blockId ?: ""
-        return when {
-            blockId.contains("product") -> "Product"
-            blockId.contains("test") -> "Test"
-            else -> "Engineering"
+    private fun sendResponseMessage(
+        selectedFeedback: String,
+        ctx: ActionContext,
+        req: BlockActionRequest
+    ) {
+        val responseMessage = "Thank you for your response! $selectedFeedback"
+
+        ctx.client().chatUpdate {
+            it
+                .channel(req.payload.channel.id)
+                .ts(req.payload.message.ts)  // Use the timestamp of the original message to identify it
+                .blocks(
+                    Blocks.asBlocks(
+                        Blocks.section { section ->
+                            section
+                                .text(BlockCompositions.plainText(responseMessage, true))
+                        }
+                    )
+                )
         }
+    }
+
+    private fun getAllUserTeams(userId: String): List<Team> {
+        val allTeams = slackProperties.teams
+
+        val userTeams = allTeams.filter { getGroupUsers(it.slackGroupId).contains(userId) }
+        val otherTeam = allTeams.find { it.slackGroupId.isEmpty() }!!
+
+        // if user isn't assigned to any group, return 'Other' group by default
+        return userTeams.ifEmpty { listOf(otherTeam) }
+    }
+
+    private fun getGroupUsers(groupId: String): List<String> {
+        return if (groupId.isEmpty())
+            listOf()
+        else
+            methodsClient.usergroupsUsersList { it.usergroup(groupId) }.users
     }
 
     private fun getUserInfo(app: App, slackBotToken: String, userId: String): UsersInfoResponse {

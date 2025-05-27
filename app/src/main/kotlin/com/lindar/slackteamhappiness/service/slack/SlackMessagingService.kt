@@ -10,19 +10,19 @@ import org.springframework.stereotype.Service
 @Service
 class SlackMessagingService(private val methodsClient: MethodsClient) {
 
-    fun sendMessageToUser(userId: String, message: String, team: String = "Engineering") {
+    fun sendMessageToUser(userId: String, message: String) {
         try {
             methodsClient.chatPostMessage { req ->
                 req.channel(userId)
                     .text(message)
                     .blocks(asBlocks(
-                        section() { section ->
+                        section { section ->
                             section
                                 .text(markdownText("*How have you been feeling at work this past week?*"))
                         },
                         actions { actions ->
                             actions
-                                .blockId("${SlackViewIDs.USER_SELECTION_DROPDOWN_BLOCK_ID}_${team.lowercase()}")
+                                .blockId(SlackViewIDs.USER_SELECTION_DROPDOWN_BLOCK_ID)
                                 .elements(
                                     listOf(
                                         staticSelect {

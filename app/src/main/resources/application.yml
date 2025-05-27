@@ -12,20 +12,23 @@ slack:
     token: ${SLACK_BOT_TOKEN}
   app:
     token: ${SLACK_APP_TOKEN}
+  test-user: ${SLACK_TEST_USER_ID:}
   teams:
-    test-user: ${SLACK_TEST_USER_ID:}
-    eng-team: ${SLACK_TEAM_GROUP_ID:}
-    product-team: ${SLACK_PRODUCT_TEAM_GROUP_ID:}
-
+    - name: "Engineering"
+      slack-group-id: ${SLACK_TEAM_GROUP_ID:}
+      google-sheet-id: ${ENGINEERING_SPREADSHEET_ID:1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4}
+      google-sheet-name: ${ENGINEERING_SHEET_NAME:Form responses}
+    - name: "Product"
+      slack-group-id: ${SLACK_PRODUCT_TEAM_GROUP_ID:}
+      google-sheet-id: ${PRODUCT_SPREADSHEET_ID:1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4}
+      google-sheet-name: ${PRODUCT_SHEET_NAME:Product Form responses}
+    - name: "Other"
+      slack-group-id: ""
+      google-sheet-id: ${PRODUCT_SPREADSHEET_ID:1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4}
+      google-sheet-name: ${OTHER_SHEET_NAME:Other Form responses}
 google:
-  sheets:
-    application-name: "Team Happiness Tracker"
-    engineering:
-      spreadsheet-id: ${ENGINEERING_SPREADSHEET_ID:1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4}
-      sheet-name: ${ENGINEERING_SHEET_NAME:Form responses}
-    product:
-      spreadsheet-id: ${PRODUCT_SPREADSHEET_ID:1JlDQvfBi-kNLhbNx4Hwtb2QYIwT4L-b7rrp2RF4vvw4}
-      sheet-name: ${PRODUCT_SHEET_NAME:Product Form responses}
+  application-name: ${GOOGLE_APPLICATION_NAME:Team Happiness Tracker}
+  credential-file-path: ${GOOGLE_CREDENTIALS_FILE_PATH:/conf/credentials.json}
 
 schedule:
-  cron: 0 30 14 * * FRI
+  cron: ${SCHUDULE_TIME:0 30 14 * * FRI}
