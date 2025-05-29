@@ -1,13 +1,13 @@
 package com.lindar.slackteamhappiness.service.slack.handler
 
 import com.lindar.slackteamhappiness.config.SlackProperties
-import com.lindar.slackteamhappiness.config.Team
+import com.lindar.slackteamhappiness.config.Group
 import com.lindar.slackteamhappiness.service.googlesheets.TeamHappinessGoogleSheetService
+import com.lindar.slackteamhappiness.service.slack.SlackGroupsCache
 import com.lindar.slackteamhappiness.service.slack.view.SlackViewIDs
 import com.slack.api.bolt.App
 import com.slack.api.bolt.context.builtin.ActionContext
 import com.slack.api.bolt.request.builtin.BlockActionRequest
-import com.slack.api.methods.MethodsClient
 import com.slack.api.methods.response.users.UsersInfoResponse
 import com.slack.api.model.block.Blocks
 import com.slack.api.model.block.composition.BlockCompositions
@@ -22,7 +22,7 @@ import java.util.*
 class SlackFeedbackSubmitHandler (
     private val teamHappinessGoogleSheetService: TeamHappinessGoogleSheetService,
     private val slackProperties: SlackProperties,
-    private val methodsClient: MethodsClient
+    private val slackGroupsCache: SlackGroupsCache
 ) {
     fun handleSubmit(app: App) {
         app.blockAction(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) { req, ctx ->
@@ -30,9 +30,9 @@ class SlackFeedbackSubmitHandler (
             val currentUserId = req.payload.user.id
             val currentUserInfo = getUserInfo(app, ctx.botToken, currentUserId)
             val messageDate = getOriginalMessageDateFromBlock(req)
-            val teams = getAllUserTeams(currentUserId)
+            val groups = getAllUserGroups(currentUserId)
 
-            teams.forEach {
+            groups.forEach {
                 teamHappinessGoogleSheetService.appendValues(
                     selectedFeedback,
                     currentUserInfo.user.profile.realNameNormalized,
@@ -69,28 +69,20 @@ class SlackFeedbackSubmitHandler (
         }
     }
 
-    private fun getAllUserTeams(userId: String): List<Team> {
-        val allTeams = slackProperties.teams
+    private fun getAllUserGroups(userId: String): List<Group> {
+        val userGroupIds = slackGroupsCache.getUserGroups(userId)
+        val userConfigGroups = slackProperties.groups.filter { userGroupIds.contains(it.slackGroupId) }
+        val otherGroup = slackProperties.groups.find { it.slackGroupId.isEmpty() }!!
 
-        val userTeams = allTeams.filter { getGroupUsers(it.slackGroupId).contains(userId) }
-        val otherTeam = allTeams.find { it.slackGroupId.isEmpty() }!!
-
-        // if user isn't assigned to any group, return 'Other' group by default
-        return userTeams.ifEmpty { listOf(otherTeam) }
-    }
-
-    private fun getGroupUsers(groupId: String): List<String> {
-        return if (groupId.isEmpty())
-            listOf()
-        else
-            methodsClient.usergroupsUsersList { it.usergroup(groupId) }.users
+        // if user isn't assigned to any of the groups specified in application.yml, return 'Other' group by default
+        return userConfigGroups.ifEmpty { listOf(otherGroup) }
     }
 
     private fun getUserInfo(app: App, slackBotToken: String, userId: String): UsersInfoResponse {
         return app.slack.methods(slackBotToken).usersInfo { it.user(userId) }
     }
 
-    fun getSelectedFeedbackFromBlock(req: BlockActionRequest): String {
+    private fun getSelectedFeedbackFromBlock(req: BlockActionRequest): String {
         // Find the block ID that contains our action ID
         val blockId = req.payload.state.values.keys.find { 
             req.payload.state.values[it]?.containsKey(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) == true 
@@ -99,7 +91,7 @@ class SlackFeedbackSubmitHandler (
         return req.payload.state.values[blockId]?.get(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID)?.selectedOption?.text?.text ?: ""
     }
 
-    fun getOriginalMessageDateFromBlock(req: BlockActionRequest): String {
+    private fun getOriginalMessageDateFromBlock(req: BlockActionRequest): String {
         val payload = req.payload
 
         val messageTs = payload.message?.ts ?: return getNowTimeString() // Handle null safety if message or ts is null
@@ -113,7 +105,7 @@ class SlackFeedbackSubmitHandler (
         return formatter.format(instant)
     }
 
-    fun getNowTimeString(): String {
+    private fun getNowTimeString(): String {
         val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy h:mma z", Locale.ENGLISH)
         val zonedDateTime = ZonedDateTime.now(ZoneOffset.UTC).format(formatter)
         return zonedDateTime.format(DateTimeFormatter.ISO_DATE_TIME)

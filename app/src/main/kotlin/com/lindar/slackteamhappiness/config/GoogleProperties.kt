@@ -7,5 +7,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 data class GoogleProperties (
     val applicationName: String,
-    val credentialsFilePath: String
+    val credentialsFilePath: String,
+    val spreadsheetId: String
 )

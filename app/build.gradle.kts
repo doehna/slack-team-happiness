@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "2.7.17"
     id("io.spring.dependency-management") version "1.1.3"
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.spring") version "1.9.22"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.spring") version "2.1.0"
 }
 
 apply(plugin = "io.spring.dependency-management")
@@ -46,6 +46,12 @@ dependencies {
     implementation("com.google.auth:google-auth-library-oauth2-http:1.16.0")
     implementation("com.google.http-client:google-http-client-jackson2:1.43.1")
 
+    // Local Caching
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
+
+    // Logging
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+    implementation("io.github.oshai:kotlin-logging:6.0.4")
 }
 
 tasks.withType<KotlinCompile> {

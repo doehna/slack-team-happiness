@@ -7,14 +7,11 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 data class SlackProperties (
     val testUserId: String?,
-    val teams: List<Team>
+    val groups: List<Group>
 )
 
-data class Team (
+data class Group (
     val name: String,
     val slackGroupId: String,
-    val googleSheetId: String,
     val googleSheetName: String
 )
-
-

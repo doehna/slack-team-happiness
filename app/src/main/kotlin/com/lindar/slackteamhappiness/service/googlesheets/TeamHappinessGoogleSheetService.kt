@@ -10,10 +10,13 @@ import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.lindar.slackteamhappiness.config.GoogleProperties
-import com.lindar.slackteamhappiness.config.Team
+import com.lindar.slackteamhappiness.config.Group
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
 import java.util.*
+
+private val logger = KotlinLogging.logger {}
 
 @Service
 class TeamHappinessGoogleSheetService(
@@ -21,11 +24,11 @@ class TeamHappinessGoogleSheetService(
 ) {
     private val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance()
 
-    fun appendValues(selectedFeedback: String, respondentName: String, messageDate: String, team: Team) {
+    fun appendValues(selectedFeedback: String, respondentName: String, messageDate: String, group: Group) {
         try {
             val values = listOf(
                 listOf<Any>(
-                    selectedFeedback, respondentName, messageDate, team.name
+                    selectedFeedback, respondentName, messageDate, group.name
                 )
             )
 
@@ -33,11 +36,11 @@ class TeamHappinessGoogleSheetService(
 
             val body = ValueRange().setValues(values)
             val result = sheetsService.spreadsheets().values()
-                .append(team.googleSheetId, team.googleSheetName, body)
+                .append(googleProperties.spreadsheetId, group.googleSheetName, body)
                 .setValueInputOption("RAW")
                 .execute()
 
-            println("${result.updates.updatedCells} cells appended to $team sheet.")
+            logger.info { "${result.updates.updatedCells} cells appended to $group sheet." }
         } catch (e: Exception) {
             e.printStackTrace()
         }
