@@ -1,4 +1,4 @@
-package com.lindar.slackteamhappiness.service.slack
+package com.lindar.slackteamhappiness.service.slack.service
 
 import com.lindar.slackteamhappiness.service.slack.view.SlackViewIDs
 import com.slack.api.methods.MethodsClient
@@ -15,7 +15,8 @@ class SlackMessagingService(private val methodsClient: MethodsClient) {
             methodsClient.chatPostMessage { req ->
                 req.channel(userId)
                     .text(message)
-                    .blocks(asBlocks(
+                    .blocks(
+                        asBlocks(
                         section { section ->
                             section
                                 .text(markdownText("*How have you been feeling at work this past week?*"))
@@ -28,16 +29,18 @@ class SlackMessagingService(private val methodsClient: MethodsClient) {
                                         staticSelect {
                                             it.placeholder(plainText("Select an option"))
                                                 .actionId(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID)
-                                                .options(listOf(
-                                                    option(plainText(":smile: Great: Above average week, felt very happy and energized."), "Great"),
-                                                    option(plainText(":slightly_smiling_face: Good: Average week, felt satisfied and positive."), "Good"),
-                                                    option(plainText(":neutral_face: Okay: Not happy or unhappy. Just fine."), "Okay"),
-                                                    option(plainText(":confused: Not Great: A little unhappy. Something could be better."), "Not Great"),
-                                                    option(plainText(":disappointed: Unhappy: A lot could be better."), "Unhappy")
-                                                ))
+                                                .options(
+                                                    listOf(
+                                                        option(plainText(":smile: Great: Above average week, felt very happy and energized."), "Great"),
+                                                        option(plainText(":slightly_smiling_face: Good: Average week, felt satisfied and positive."), "Good"),
+                                                        option(plainText(":neutral_face: Okay: Not happy or unhappy. Just fine."), "Okay"),
+                                                        option(plainText(":confused: Not Great: A little unhappy. Something could be better."), "Not Great"),
+                                                        option(plainText(":disappointed: Unhappy: A lot could be better."), "Unhappy")
+                                                    )
+                                                )
                                         }
                                     )
-                            )
+                                )
                         }
                     ))
             }

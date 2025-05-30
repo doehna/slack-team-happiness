@@ -3,7 +3,7 @@ package com.lindar.slackteamhappiness.service.slack.handler
 import com.lindar.slackteamhappiness.config.SlackProperties
 import com.lindar.slackteamhappiness.config.Group
 import com.lindar.slackteamhappiness.service.googlesheets.TeamHappinessGoogleSheetService
-import com.lindar.slackteamhappiness.service.slack.SlackGroupsCache
+import com.lindar.slackteamhappiness.service.slack.SlackCache
 import com.lindar.slackteamhappiness.service.slack.view.SlackViewIDs
 import com.slack.api.bolt.App
 import com.slack.api.bolt.context.builtin.ActionContext
@@ -19,10 +19,10 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Service
-class SlackFeedbackSubmitHandler (
+class SlackFeedbackSubmitHandler(
     private val teamHappinessGoogleSheetService: TeamHappinessGoogleSheetService,
     private val slackProperties: SlackProperties,
-    private val slackGroupsCache: SlackGroupsCache
+    private val slackCache: SlackCache
 ) {
     fun handleSubmit(app: App) {
         app.blockAction(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) { req, ctx ->
@@ -70,7 +70,7 @@ class SlackFeedbackSubmitHandler (
     }
 
     private fun getAllUserGroups(userId: String): List<Group> {
-        val userGroupIds = slackGroupsCache.getUserGroups(userId)
+        val userGroupIds = slackCache.getUserGroups(userId)
         val userConfigGroups = slackProperties.groups.filter { userGroupIds.contains(it.slackGroupId) }
         val otherGroup = slackProperties.groups.find { it.slackGroupId.isEmpty() }!!
 
@@ -84,8 +84,8 @@ class SlackFeedbackSubmitHandler (
 
     private fun getSelectedFeedbackFromBlock(req: BlockActionRequest): String {
         // Find the block ID that contains our action ID
-        val blockId = req.payload.state.values.keys.find { 
-            req.payload.state.values[it]?.containsKey(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) == true 
+        val blockId = req.payload.state.values.keys.find {
+            req.payload.state.values[it]?.containsKey(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) == true
         } ?: SlackViewIDs.USER_SELECTION_DROPDOWN_BLOCK_ID
 
         return req.payload.state.values[blockId]?.get(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID)?.selectedOption?.text?.text ?: ""
