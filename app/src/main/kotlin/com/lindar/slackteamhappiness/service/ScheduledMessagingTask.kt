@@ -1,7 +1,7 @@
 package com.lindar.slackteamhappiness.service
 
 import com.lindar.slackteamhappiness.config.SlackProperties
-import com.lindar.slackteamhappiness.service.slack.SlackCache
+import com.lindar.slackteamhappiness.service.slack.cache.SlackCache
 import com.lindar.slackteamhappiness.service.slack.service.SlackMessagingService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Scheduled
@@ -26,7 +26,7 @@ class ScheduledMessagingTask(
     }
 
     private fun sendToAllUsers() {
-        val users = slackCache.getUsers()
+        val users = slackCache.getSlackUserGroupData().users
 
         users.forEach {
             slackMessagingService.sendMessageToUser(it.id, "Please share your weekly feedback!")

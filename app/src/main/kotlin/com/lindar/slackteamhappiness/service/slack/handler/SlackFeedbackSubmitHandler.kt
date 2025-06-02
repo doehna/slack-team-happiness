@@ -3,7 +3,7 @@ package com.lindar.slackteamhappiness.service.slack.handler
 import com.lindar.slackteamhappiness.config.SlackProperties
 import com.lindar.slackteamhappiness.config.Group
 import com.lindar.slackteamhappiness.service.googlesheets.TeamHappinessGoogleSheetService
-import com.lindar.slackteamhappiness.service.slack.SlackCache
+import com.lindar.slackteamhappiness.service.slack.cache.SlackCache
 import com.lindar.slackteamhappiness.service.slack.view.SlackViewIDs
 import com.slack.api.bolt.App
 import com.slack.api.bolt.context.builtin.ActionContext
@@ -70,7 +70,7 @@ class SlackFeedbackSubmitHandler(
     }
 
     private fun getAllUserGroups(userId: String): List<Group> {
-        val userGroupIds = slackCache.getUserGroups(userId)
+        val userGroupIds = slackCache.getSlackUserGroupData().groupsByUsers[userId].orEmpty()
         val userConfigGroups = slackProperties.groups.filter { userGroupIds.contains(it.slackGroupId) }
         val otherGroup = slackProperties.groups.find { it.slackGroupId.isEmpty() }!!
 
