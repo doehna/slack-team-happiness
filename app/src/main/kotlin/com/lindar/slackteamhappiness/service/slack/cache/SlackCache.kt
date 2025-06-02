@@ -15,7 +15,7 @@ class SlackCache(
     private var slackCache: LoadingCache<String, SlackUserGroupData> = Caffeine.newBuilder()
         .maximumSize(1000)
         .expireAfterWrite(1, TimeUnit.DAYS)
-        .build { SlackUserGroupData(users = slackService.getUsers(), groupsByUsers = slackService.getUserToGroupsMap()) }
+        .build { SlackUserGroupData(users = slackService.getUsers(), groupsByUserIds = slackService.getUserToGroupsMap()) }
 
     fun getSlackUserGroupData(): SlackUserGroupData {
         return slackCache[cacheKey]

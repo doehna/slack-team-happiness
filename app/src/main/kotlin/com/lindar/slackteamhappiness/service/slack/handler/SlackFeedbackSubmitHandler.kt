@@ -70,7 +70,7 @@ class SlackFeedbackSubmitHandler(
     }
 
     private fun getAllUserGroups(userId: String): List<Group> {
-        val userGroupIds = slackCache.getSlackUserGroupData().groupsByUsers[userId].orEmpty()
+        val userGroupIds = slackCache.getSlackUserGroupData().groupsByUserIds[userId].orEmpty()
         val userConfigGroups = slackProperties.groups.filter { userGroupIds.contains(it.slackGroupId) }
         val otherGroup = slackProperties.groups.find { it.slackGroupId.isEmpty() }!!
 
