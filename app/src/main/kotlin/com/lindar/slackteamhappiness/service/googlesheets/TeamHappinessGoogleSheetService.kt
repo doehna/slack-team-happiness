@@ -9,32 +9,26 @@ import com.google.api.services.sheets.v4.model.ValueRange
 import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.auth.oauth2.ServiceAccountCredentials
-import org.springframework.beans.factory.annotation.Value
+import com.lindar.slackteamhappiness.config.GoogleProperties
+import com.lindar.slackteamhappiness.config.Group
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
 import java.util.*
 
+private val logger = KotlinLogging.logger {}
+
 @Service
 class TeamHappinessGoogleSheetService(
-    @Value("\${google.sheets.application-name}") private val applicationName: String,
-    @Value("\${google.sheets.engineering.spreadsheet-id}") private val engineeringSpreadsheetId: String,
-    @Value("\${google.sheets.engineering.sheet-name}") private val engineeringSheetName: String,
-    @Value("\${google.sheets.product.spreadsheet-id}") private val productSpreadsheetId: String,
-    @Value("\${google.sheets.product.sheet-name}") private val productSheetName: String
+    private val googleProperties: GoogleProperties,
 ) {
     private val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance()
-    private val CREDENTIALS_FILE_PATH = "/conf/credentials.json" // Adjust the path as necessary
 
-    fun appendValues(selectedFeedback: String, respondentName: String, messageDate: String, team: String = "Engineering") {
+    fun appendValues(selectedFeedback: String, respondentName: String, messageDate: String, group: Group) {
         try {
-            val (spreadsheetId, sheetName) = when (team.lowercase()) {
-                "product" -> Pair(productSpreadsheetId, productSheetName)
-                else -> Pair(engineeringSpreadsheetId, engineeringSheetName)
-            }
-
             val values = listOf(
                 listOf<Any>(
-                    selectedFeedback, respondentName, messageDate, team
+                    selectedFeedback, respondentName, messageDate, group.name
                 )
             )
 
@@ -42,11 +36,11 @@ class TeamHappinessGoogleSheetService(
 
             val body = ValueRange().setValues(values)
             val result = sheetsService.spreadsheets().values()
-                .append(spreadsheetId, sheetName, body)
+                .append(googleProperties.spreadsheetId, group.googleSheetName, body)
                 .setValueInputOption("RAW")
                 .execute()
 
-            println("${result.updates.updatedCells} cells appended to $team sheet.")
+            logger.info { "${result.updates.updatedCells} cells appended to $group sheet." }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -58,13 +52,13 @@ class TeamHappinessGoogleSheetService(
         val credentials = getCredentials()
         val requestInitializer = HttpCredentialsAdapter(credentials)
         return Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, requestInitializer)
-            .setApplicationName(applicationName)
+            .setApplicationName(googleProperties.applicationName)
             .build()
     }
 
     @Throws(Exception::class)
     private fun getCredentials(): GoogleCredentials? {
-        FileInputStream(System.getProperty("user.home") + CREDENTIALS_FILE_PATH).use { inputStream ->
+        FileInputStream(System.getProperty("user.home") + googleProperties.credentialsFilePath).use { inputStream ->
             return ServiceAccountCredentials.fromStream(inputStream)
                 .createScoped(listOf(SheetsScopes.SPREADSHEETS))
         }
