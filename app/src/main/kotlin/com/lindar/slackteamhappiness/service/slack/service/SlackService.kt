@@ -73,7 +73,7 @@ class SlackService(
                 return listOf()
             }
         } catch (e: Exception) {
-            logger.error { "Unexpected error while calling Slack API: ${e.message}" }
+            logger.error(e) { "Unexpected error while calling Slack API" }
             return listOf()
         }
     }
