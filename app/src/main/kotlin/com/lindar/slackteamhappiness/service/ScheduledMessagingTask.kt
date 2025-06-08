@@ -26,7 +26,7 @@ class ScheduledMessagingTask(
     }
 
     private fun sendToAllUsers() {
-        val users = slackCache.getSlackUserGroupData().users
+        val users = slackCache.getSlackUserGroupData().keys.toList()
 
         users.forEach {
             slackMessagingService.sendMessageToUser(it.id, "Please share your weekly feedback!")

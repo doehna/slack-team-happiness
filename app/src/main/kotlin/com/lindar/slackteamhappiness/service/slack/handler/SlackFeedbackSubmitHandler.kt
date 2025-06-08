@@ -8,7 +8,7 @@ import com.lindar.slackteamhappiness.service.slack.view.SlackViewIDs
 import com.slack.api.bolt.App
 import com.slack.api.bolt.context.builtin.ActionContext
 import com.slack.api.bolt.request.builtin.BlockActionRequest
-import com.slack.api.methods.response.users.UsersInfoResponse
+import com.slack.api.model.User
 import com.slack.api.model.block.Blocks
 import com.slack.api.model.block.composition.BlockCompositions
 import org.springframework.stereotype.Service
@@ -28,32 +28,38 @@ class SlackFeedbackSubmitHandler(
         app.blockAction(SlackViewIDs.USER_SELECTION_DROPDOWN_ACTION_ID) { req, ctx ->
             val selectedFeedback = getSelectedFeedbackFromBlock(req)
             val currentUserId = req.payload.user.id
-            val currentUserInfo = getUserInfo(app, ctx.botToken, currentUserId)
-            val messageDate = getOriginalMessageDateFromBlock(req)
-            val groups = getAllUserGroups(currentUserId)
+            val currentUser = getUserInfo(currentUserId)
 
-            groups.forEach {
-                teamHappinessGoogleSheetService.appendValues(
-                    selectedFeedback,
-                    currentUserInfo.user.profile.realNameNormalized,
-                    messageDate,
-                    it
-                )
+            if (currentUser != null) {
+                val messageDate = getOriginalMessageDateFromBlock(req)
+                val groups = getAllUserGroups(currentUser)
+                groups.forEach {
+                    teamHappinessGoogleSheetService.appendValues(
+                        selectedFeedback,
+                        currentUser.realName,
+                        messageDate,
+                        it
+                    )
+                }
+
+                val responseMessage = "Thank you for your response! $selectedFeedback"
+                sendResponseMessage(responseMessage, ctx, req)
+            } else {
+                val responseMessage = "Thank you for your feedback!\n" +
+                        "However, it won't be saved because you're currently not a member of any feedback group.\n" +
+                        "If you believe this is a mistake, please let us know!"
+                sendResponseMessage(responseMessage, ctx, req)
             }
-
-            sendResponseMessage(selectedFeedback, ctx, req)
 
             ctx.ack()
         }
     }
 
     private fun sendResponseMessage(
-        selectedFeedback: String,
+        responseMessage: String,
         ctx: ActionContext,
         req: BlockActionRequest
     ) {
-        val responseMessage = "Thank you for your response! $selectedFeedback"
-
         ctx.client().chatUpdate {
             it
                 .channel(req.payload.channel.id)
@@ -69,17 +75,19 @@ class SlackFeedbackSubmitHandler(
         }
     }
 
-    private fun getAllUserGroups(userId: String): List<Group> {
-        val userGroupIds = slackCache.getSlackUserGroupData().groupsByUserIds[userId].orEmpty()
-        val userConfigGroups = slackProperties.groups.filter { userGroupIds.contains(it.slackGroupId) }
-        val otherGroup = slackProperties.groups.find { it.slackGroupId.isEmpty() }!!
+    private fun getAllUserGroups(user: User): List<Group> {
+        val userGroups = slackCache.getSlackUserGroupData()[user] ?: listOf()
+        val otherGroup = slackProperties.groups.find { it.slackGroupId.isEmpty() }
+        val otherList = if (otherGroup != null) listOf(otherGroup) else listOf()
 
         // if user isn't assigned to any of the groups specified in application.yml, return 'Other' group by default
-        return userConfigGroups.ifEmpty { listOf(otherGroup) }
+        return userGroups.ifEmpty { otherList }
     }
 
-    private fun getUserInfo(app: App, slackBotToken: String, userId: String): UsersInfoResponse {
-        return app.slack.methods(slackBotToken).usersInfo { it.user(userId) }
+    private fun getUserInfo(userId: String): User? {
+        return slackCache.getSlackUserGroupData()
+            .entries
+            .find { it.key.id == userId }?.key
     }
 
     private fun getSelectedFeedbackFromBlock(req: BlockActionRequest): String {

@@ -1,5 +1,7 @@
 package com.lindar.slackteamhappiness.service.slack.service
 
+import com.lindar.slackteamhappiness.config.Group
+import com.lindar.slackteamhappiness.config.SlackProperties
 import com.slack.api.methods.MethodsClient
 import com.slack.api.methods.SlackApiException
 import com.slack.api.model.User
@@ -10,9 +12,20 @@ private val logger = KotlinLogging.logger {}
 
 @Service
 class SlackService(
-    private val methodsClient: MethodsClient
+    private val methodsClient: MethodsClient,
+    private val slackProperties: SlackProperties
 ) {
-    fun getUserToGroupsMap(): Map<String, List<String>> {
+    fun getUserToGroupsMap(): Map<User, List<Group>> {
+        val userIdsToGroupMap = getUserIdsToGroupsMap()
+        val users = getAllUsers()
+        val userIdToUser = users.associateBy { it.id }
+
+        return userIdsToGroupMap.mapNotNull { (userId, groups) ->
+            userIdToUser[userId]?.let { user -> user to groups }
+        }.toMap()
+    }
+
+    private fun getUserIdsToGroupsMap(): Map<String, List<Group>> {
         // make a single call to Slack to get all groups and group them by users
         try {
             val slackUserGroupMap = methodsClient
@@ -20,7 +33,7 @@ class SlackService(
                 .usergroups
                 .associate { it.id to it.users }
 
-            return invertGroupToUserMap(slackUserGroupMap)
+            return getUserIdToConfigGroupMap(slackUserGroupMap)
         } catch (e: SlackApiException) {
             if (e.response.code == 429) {
                 val retryAfter = e.response.headers["Retry-After"]?.toLongOrNull()
@@ -33,26 +46,41 @@ class SlackService(
         }
     }
 
-    fun getUsers(): List<User> {
-        try {
-            return methodsClient.usersList { it }.members
-                ?.filter { user -> !user.isDeleted && !user.isBot && user.profile != null && user.id != "USLACKBOT" }
-                .orEmpty()
-        } catch (e: SlackApiException) {
-            if (e.response.code == 429) {
-                val retryAfter = e.response.headers["Retry-After"]?.toLongOrNull()
-                logger.error { "⚠️ Rate limit exceeded! Retry after $retryAfter seconds." }
-            } else {
-                logger.error { "❌ Slack API error: ${e.response.code} - ${e.response.body}" }
-            }
-
-            return listOf()
-        }
-    }
-
-    private fun invertGroupToUserMap(groupToUserMap: Map<String, List<String>>): Map<String, List<String>> {
-        return groupToUserMap
+    private fun invertGroupIdToUserIdMap(groupIdToUserIdMap: Map<String, List<String>>): Map<String, List<String>> {
+        return groupIdToUserIdMap
             .flatMap { (groupId, userIds) -> userIds.map { userId -> userId to groupId } }
             .groupBy({ it.first }, { it.second })
     }
+
+    private fun getUserIdToConfigGroupMap(groupIdToUserIdMap: Map<String, List<String>>): Map<String, List<Group>> {
+        val userIdToGroupIdMap = invertGroupIdToUserIdMap(groupIdToUserIdMap)
+
+        return userIdToGroupIdMap
+            .mapValues { (_, groupIds) ->
+                slackProperties.groups.filter { it.slackGroupId in groupIds }
+            }
+            .filterValues { it.isNotEmpty() }
+    }
+
+    private fun getAllUsers(): List<User> {
+        try {
+            val response = methodsClient.usersList { it.limit(1000) }
+
+            return if (response.isOk) {
+                response.members
+            } else {
+                listOf()
+            }
+        } catch (e: Exception) {
+            return listOf()
+        }
+    }
 }
+
+
+
+
+
+
+
+
