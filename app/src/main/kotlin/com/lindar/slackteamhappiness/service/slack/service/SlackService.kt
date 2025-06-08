@@ -64,14 +64,16 @@ class SlackService(
 
     private fun getAllUsers(): List<User> {
         try {
-            val response = methodsClient.usersList { it.limit(1000) }
+            val response = methodsClient.usersList { it }
 
-            return if (response.isOk) {
-                response.members
+            if (response.isOk) {
+                return response.members
             } else {
-                listOf()
+                logger.error { "Slack API error in usersList: error='${response.error}', needed='${response.needed}', provided='${response.provided}'" }
+                return listOf()
             }
         } catch (e: Exception) {
+            logger.error { "Unexpected error while calling Slack API: ${e.message}" }
             return listOf()
         }
     }
